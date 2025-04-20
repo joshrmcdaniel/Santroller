@@ -21,6 +21,7 @@
 #include "config.h"
 #include "descriptors.h"
 #include "hid.h"
+#include "MIDI.h"
 #include "shared_main.h"
 
 typedef struct
@@ -53,11 +54,20 @@ void setup() {
     }
     GlobalInterruptEnable();  // enable global interrupts
     SetupHardware();          // ask LUFA to setup the hardware
+    
+#ifdef LEONARDO_MIDI_ENABLED
+    MIDI.begin(0);
+    MIDI.setHandleNoteOn(onNote);
+    MIDI.setHandleNoteOff(offNote);
+    MIDI.setHandleControlChange(onControlChange);
+    MIDI.setHandlePitchBend(onPitchBend);
+#endif
 }
 
 uint8_t buf[255];
 void loop() {
     tick();
+    
     Endpoint_SelectEndpoint(DEVICE_EPADDR_OUT);
     if (Endpoint_IsOUTReceived()) {
         if (Endpoint_IsReadWriteAllowed()) {
